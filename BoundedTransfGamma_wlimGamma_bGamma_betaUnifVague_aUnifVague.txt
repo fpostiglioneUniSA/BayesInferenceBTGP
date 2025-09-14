@@ -1,0 +1,58 @@
+﻿model
+	{
+		# LIKELIHOOD MODEL OF DEGRADATION PROCESS INCR. \Delta W(t_{i,j-1},t_{i,j}) | W_{i,j-1}  [in the code "w_{i,j}" is "lin[i,j]", "wlim" represents "U"] 
+		# ----------------
+				
+		# tij for j=1 corresponds to t_0=0, added to the data set
+		
+		for (i in 1 : M) {
+			for (j in 2 : N[i]) {  # index j is related to t_{j-1}, for j=1 we have t_0 = 0; N[i] no. measures for item i
+				dummy[i,j] <- 0
+          			dummy[i,j] ~ dloglik(logLike[i,j])        				# likelihood is exp(logLike[i,j])
+          			tt[i,j] <- pow(tempi[i,j]/a,b) - pow(tempi[i,(j-1)]/a,b) 		# eq. (9)
+				ww[i,j] <- lin[i,j]/(wlim-lin[i,j]) -  lin[i,j-1]/(wlim-lin[i,j-1])	# eq. (8)/beta
+       				logLike[i,j] <- log(wlim) + tt[i,j]*log(beta)  - 2*log(wlim-lin[i,j]) + (tt[i,j] - 1)*log(ww[i,j]) - loggam(tt[i,j]) - beta*ww[i,j]
+         
+			}
+
+		}
+
+		# MODELS OF THE PRIOR DISTRIBUTIONS
+		# ---------------------------------
+		
+		# Prior of "b"
+
+		dummyb <- 0
+		dummyb ~ dloglik(phib)	# likelihood is exp(phib)
+        	phib <- (rr-1)*log(b-1)+rr*log(ss)-loggam(rr)-ss*(b-1)		# log(pdf of 3params gamma(rr,ss,1)), ss rate param.; pdf in eq. (32)
+		b ~ dunif(1,2000000000)		# 'flat' > 1 prior
+		ss <- (meanb-1)/pow(sdb,2)	
+		rr <- ss*(meanb-1)
+		meanb <- 1.5
+		sdb <- 0.3 
+		
+		
+		# Prior of "wlim" ("U" in this manuscript)
+		
+		dummywlim <- 0 
+		dummywlim ~ dloglik(phiwlim)	# likelihood is exp(phiwlim)
+		phiwlim <- (pp-1)*log(wlim-wM)+pp*log(qq)-loggam(pp)-qq*(wlim-wM)	# log(pdf of 3params gamma(pp,qq,wM)), qq rate param.; pdf in eq. (26)
+		wlim ~ dunif(wM,2000000000)		# 'flat' > wM prior
+		wM <- 4.3 
+		
+		qq <- (meanwlim-wM)/pow(sdwlim,2)
+		pp <- qq*(meanwlim-wM)
+		meanwlim <- 4.6 # 4.5
+		sdwlim <- 0.3 
+		
+		
+
+		# Vague Priors of "a" and "beta"
+		a ~ dunif(aL,aU)
+		aL <- 0
+		aU <- 50000
+		beta ~ dunif(betaL,betaU)
+		betaL <- 0
+		betaU <- 200			
+	}
+	

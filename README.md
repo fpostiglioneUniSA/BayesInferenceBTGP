@@ -1,5 +1,4 @@
-# BayesInferenceBTGP
-Bayesian Inference for BTGP degradation process
+# Bayesian Inference for BTGP degradation process
 
 Launch "BugsBTGPsampling.R" after selecting the number of chains, between 1 and 3 (this version is for Microsoft Windows only).
 
